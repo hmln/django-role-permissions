@@ -13,6 +13,21 @@ class HasRoleMixin(object):
                 request, *args, **kwargs)
 
 
+class HTTPMethodHasRoleMixin(object):
+    default_allowed_roles = []
+    method_roles = {}
+
+    def dispatch(self, request, *args, **kwargs):
+        roles = (
+            self.method_roles.get(request.method) or
+            self.method_roles.get(request.method.lower()) or
+            self.default_allowed_roles
+        )
+        return has_role_decorator(roles)(
+            super(HTTPMethodHasRoleMixin, self).dispatch)(
+                request, *args, **kwargs)
+
+
 class HasPermissionsMixin(object):
     required_permission = ''
 
@@ -20,4 +35,19 @@ class HasPermissionsMixin(object):
         permission = self.required_permission
         return has_permission_decorator(permission)(
             super(HasPermissionsMixin, self).dispatch)(
+                request, *args, **kwargs)
+
+
+class HTTPMethodHasPermissionsMixin(object):
+    default_required_permission = ''
+    method_permission = {}
+
+    def dispatch(self, request, *args, **kwargs):
+        permission = (
+            self.method_permission.get(request.method) or
+            self.method_permission.get(request.method.lower()) or
+            self.default_required_permission
+        )
+        return has_permission_decorator(permission)(
+            super(HTTPMethodHasPermissionsMixin, self).dispatch)(
                 request, *args, **kwargs)
